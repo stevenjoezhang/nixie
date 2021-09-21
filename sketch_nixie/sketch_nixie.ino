@@ -1,14 +1,13 @@
-#define CLK 27
-#define DAT 25
-#define RST 23
+#define SDA 27
+#define SCL 25
 
 #define STEPS 18
 
-#include <ThreeWire.h>
-#include <RtcDS1302.h>
+#include <SoftwareWire.h>  // must be included here so that Arduino library object file references work
+#include <RtcDS3231.h>
 
-ThreeWire myWire(DAT, CLK, RST);
-RtcDS1302<ThreeWire> Rtc(myWire);
+SoftwareWire myWire(SDA, SCL);
+RtcDS3231<SoftwareWire> Rtc(myWire);
 
 int pins[][4] = {{46, 48, 50, 52}, {38, 40, 42, 44}, {30, 32, 34, 36}, {31, 33, 35, 37}, {39, 41, 43, 45}, {47, 49, 51, 53}};
 unsigned int state[6] = {0, 0, 0, 0, 0, 0};
@@ -23,7 +22,7 @@ void setup() {
       pinMode(pins[i][j], OUTPUT);
     }
   }
-  Serial.begin(57600);
+  Serial.begin(115200);
 
   Serial.print("compiled: ");
   Serial.print(__DATE__);
@@ -36,17 +35,25 @@ void setup() {
   Serial.println();
 
   if (!Rtc.IsDateTimeValid()) {
-    // Common Causes:
-    //  1) first time you ran and the device wasn't running yet
-    //  2) the battery on the device is low or even missing
+    if (Rtc.LastError() != 0) {
+      // we have a communications error
+      // see https://www.arduino.cc/en/Reference/WireEndTransmission for
+      // what the number means
+      Serial.print("RTC communications error = ");
+      Serial.println(Rtc.LastError());
+    } else {
+      // Common Causes:
+      //    1) first time you ran and the device wasn't running yet
+      //    2) the battery on the device is low or even missing
 
-    Serial.println("RTC lost confidence in the DateTime!");
-    Rtc.SetDateTime(compiled);
-  }
+      Serial.println("RTC lost confidence in the DateTime!");
 
-  if (Rtc.GetIsWriteProtected()) {
-    Serial.println("RTC was write protected, enabling writing now");
-    Rtc.SetIsWriteProtected(false);
+      // following line sets the RTC to the date & time this sketch was compiled
+      // it will also reset the valid flag internally unless the Rtc device is
+      // having an issue
+
+      Rtc.SetDateTime(compiled);
+    }
   }
 
   if (!Rtc.GetIsRunning()) {
@@ -65,6 +72,11 @@ void setup() {
   else if (now == compiled) {
     Serial.println("RTC is the same as compile time! (not expected but all is fine)");
   }
+
+  // never assume the Rtc was last configured by you, so
+  // just clear them to your needed state
+  Rtc.Enable32kHzPin(false);
+  Rtc.SetSquareWavePin(DS3231SquareWavePin_ModeNone);
 
   post(state);
 }
