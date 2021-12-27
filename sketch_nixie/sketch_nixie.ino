@@ -1,6 +1,6 @@
-#define SDA 27
-#define SCL 25
-
+#define SDA 25
+#define SCL 23
+#define VCC 27
 #define STEPS 18
 
 #include <SoftwareWire.h>  // must be included here so that Arduino library object file references work
@@ -17,6 +17,8 @@ void setup() {
   // put your setup code here, to run once:
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, LOW);
+  pinMode(VCC, OUTPUT);
+  digitalWrite(VCC, HIGH);
   for (int i = 0; i < 6; i++) {
     for (int j = 0; j < 4; j++) {
       pinMode(pins[i][j], OUTPUT);
