@@ -10,3 +10,7 @@
 
 - [Rtc](https://github.com/Makuna/Rtc)
 - [SoftwareWire](https://github.com/Testato/SoftwareWire)
+
+## Related Work
+
+- [NixieTubeClock](https://github.com/zer0pwned/NixieTubeClock)
